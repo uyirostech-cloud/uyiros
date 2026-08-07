@@ -1,0 +1,42 @@
+# dependencies
+node_modules/
+vendor/
+
+# build output
+dist/
+build/
+*.tsbuildinfo
+
+# environment / secrets
+.env
+.env.local
+.env.*.local
+.env.production
+server/.env
+server/.env.*
+!server/.env.example
+
+# runtime storage (may contain patient data)
+storage/uploads/
+storage/logs/
+server/storage/uploads/
+server/storage/logs/
+*.log
+
+# database dumps / backups
+*.sql.gz
+backups/
+/dumps/
+
+# editor / os
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.sample.json
+
+# misc
+coverage/
+.cache/
+tmp/
