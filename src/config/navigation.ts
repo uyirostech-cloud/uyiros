@@ -16,63 +16,63 @@ export interface NavSection {
  * server-side authorization decision.
  */
 export const navigation: NavSection[] = [
-  { label: null, items: [{ label: 'Dashboard', path: '/', permission: 'dashboard.view' }] },
+  { label: null, items: [{ label: 'Dashboard', path: '/app', permission: 'dashboard.view' }] },
   {
     label: 'CRM',
     items: [
-      { label: 'Leads', path: '/leads', permission: 'lead.view' },
-      { label: 'Follow-ups', path: '/leads/followups', permission: 'lead.view' },
+      { label: 'Leads', path: '/app/leads', permission: 'lead.view' },
+      { label: 'Follow-ups', path: '/app/leads/followups', permission: 'lead.view' },
     ],
   },
   {
     label: 'Front Desk',
     items: [
-      { label: 'Appointments', path: '/appointments', permission: 'appointment.view' },
-      { label: 'Queue', path: '/queue', permission: 'queue.view' },
-      { label: 'Patients', path: '/patients', permission: 'patient.view' },
+      { label: 'Appointments', path: '/app/appointments', permission: 'appointment.view' },
+      { label: 'Queue', path: '/app/queue', permission: 'queue.view' },
+      { label: 'Patients', path: '/app/patients', permission: 'patient.view' },
     ],
   },
   {
     label: 'Clinical',
     items: [
-      { label: 'Consultations', path: '/consultations', permission: 'consultation.view' },
-      { label: 'Prescriptions', path: '/prescriptions', permission: 'prescription.view' },
+      { label: 'Consultations', path: '/app/consultations', permission: 'consultation.view' },
+      { label: 'Prescriptions', path: '/app/prescriptions', permission: 'prescription.view' },
     ],
   },
   {
     label: 'Billing',
     items: [
-      { label: 'Invoices', path: '/invoices', permission: 'invoice.view' },
-      { label: 'Payments', path: '/payments', permission: 'payment.view' },
+      { label: 'Invoices', path: '/app/invoices', permission: 'invoice.view' },
+      { label: 'Payments', path: '/app/payments', permission: 'payment.view' },
     ],
   },
   {
     label: 'Operations',
     items: [
-      { label: 'Tasks', path: '/tasks', permission: 'task.view' },
-      { label: 'Inventory', path: '/inventory', permission: 'inventory.view' },
-      { label: 'Vendors', path: '/vendors', permission: 'vendor.view' },
+      { label: 'Tasks', path: '/app/tasks', permission: 'task.view' },
+      { label: 'Inventory', path: '/app/inventory', permission: 'inventory.view' },
+      { label: 'Vendors', path: '/app/vendors', permission: 'vendor.view' },
     ],
   },
   {
     label: 'Finance',
     items: [
-      { label: 'Finance Dashboard', path: '/finance', permission: 'finance.view' },
-      { label: 'Expenses', path: '/expenses', permission: 'expense.view' },
-      { label: 'Daily Closing', path: '/finance/closing', permission: 'finance.close_day' },
+      { label: 'Finance Dashboard', path: '/app/finance', permission: 'finance.view' },
+      { label: 'Expenses', path: '/app/expenses', permission: 'expense.view' },
+      { label: 'Daily Closing', path: '/app/finance/closing', permission: 'finance.close_day' },
     ],
   },
-  { label: null, items: [{ label: 'Reports', path: '/reports', permission: 'report.view' }] },
+  { label: null, items: [{ label: 'Reports', path: '/app/reports', permission: 'report.view' }] },
   {
     label: 'Administration',
     items: [
-      { label: 'Doctors', path: '/administration/doctors', permission: 'doctor.view' },
-      { label: 'Users', path: '/administration/users', permission: 'user.view' },
-      { label: 'Branches', path: '/administration/branches', permission: 'branch.view' },
-      { label: 'Roles', path: '/administration/roles', permission: 'role.view' },
-      { label: 'Services', path: '/administration/services', permission: 'service.view' },
-      { label: 'Audit Logs', path: '/administration/audit-logs', permission: 'audit.view' },
-      { label: 'Settings', path: '/administration/settings', permission: 'settings.view' },
+      { label: 'Doctors', path: '/app/administration/doctors', permission: 'doctor.view' },
+      { label: 'Users', path: '/app/administration/users', permission: 'user.view' },
+      { label: 'Branches', path: '/app/administration/branches', permission: 'branch.view' },
+      { label: 'Roles', path: '/app/administration/roles', permission: 'role.view' },
+      { label: 'Services', path: '/app/administration/services', permission: 'service.view' },
+      { label: 'Audit Logs', path: '/app/administration/audit-logs', permission: 'audit.view' },
+      { label: 'Settings', path: '/app/administration/settings', permission: 'settings.view' },
     ],
   },
 ];

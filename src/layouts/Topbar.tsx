@@ -73,7 +73,7 @@ export function Topbar({ onOpenMobile }: { onOpenMobile: () => void }) {
               <div className="absolute right-0 z-20 mt-2 w-44 overflow-hidden rounded-lg border border-ink-200 bg-white shadow-overlay">
                 <button
                   type="button"
-                  onClick={() => { setMenuOpen(false); navigate('/account'); }}
+                  onClick={() => { setMenuOpen(false); navigate('/app/account'); }}
                   className="block w-full px-3.5 py-2.5 text-left text-sm text-ink-700 hover:bg-ink-50"
                 >
                   Account settings

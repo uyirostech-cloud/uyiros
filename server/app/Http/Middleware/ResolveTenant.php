@@ -12,7 +12,12 @@ use App\Core\Request;
  */
 final class ResolveTenant
 {
-    public static function build(array $auth, Request $request, bool $platformRoute): Ctx
+    /**
+     * @param bool $platformRoute Route declared with Router::platform() — platform admins only.
+     * @param bool $authOnly Route declared authOnly (no permission, any signed-in account) —
+     *                       e.g. /auth/me, /auth/logout. Both account types may use these.
+     */
+    public static function build(array $auth, Request $request, bool $platformRoute, bool $authOnly = false): Ctx
     {
         $user = $auth['user'];
 
@@ -21,7 +26,7 @@ final class ResolveTenant
         }
 
         if ($user['is_platform_admin']) {
-            if (!$platformRoute) {
+            if (!$platformRoute && !$authOnly) {
                 throw HttpException::forbidden('Platform administrators cannot access clinic data');
             }
             return new Ctx(

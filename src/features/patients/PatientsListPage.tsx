@@ -106,7 +106,7 @@ export default function PatientsListPage() {
               columns={columns}
               rows={query.data?.data ?? []}
               rowKey={(row) => row.id}
-              onRowClick={(row) => navigate(`/patients/${row.id}`)}
+              onRowClick={(row) => navigate(`/app/patients/${row.id}`)}
               emptyState={
                 <EmptyState
                   title={debouncedSearch ? 'No patients match your search' : 'No patients yet'}
@@ -136,7 +136,7 @@ export default function PatientsListPage() {
         onSaved={(patient) => {
           setFormOpen(false);
           void queryClient.invalidateQueries({ queryKey: ['patients'] });
-          navigate(`/patients/${patient.id}`);
+          navigate(`/app/patients/${patient.id}`);
         }}
       />
     </div>

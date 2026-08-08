@@ -11,6 +11,7 @@ use App\Core\Validator;
 use App\Domain\Services\AuditService;
 use App\Domain\Services\AuthService;
 use App\Domain\Services\NumberingService;
+use App\Domain\Services\OrganizationProvisioningService;
 use App\Support\Permissions;
 
 /**
@@ -123,61 +124,23 @@ final class PlatformController
             throw HttpException::validation(['admin_email' => 'This email address is already registered']);
         }
 
-        $orgId = Database::transaction(function () use ($data, $code, $ctx) {
-            $slug = Str::slug((string) $data['name']);
-            $suffix = 1;
-            while (Database::scalar('SELECT id FROM organizations WHERE slug = :s', ['s' => $slug]) !== null) {
-                $slug = Str::slug((string) $data['name']) . '-' . (++$suffix);
-            }
-            $orgId = Database::insert(
-                'INSERT INTO organizations
-                   (public_id, code, name, slug, status, plan_id, trial_ends_at, email, phone, city, state, created_at)
-                 VALUES (:pub, :code, :name, :slug, :status, :plan, :trial, :email, :phone, :city, :state, :created)',
-                [
-                    'pub' => Str::ulid(), 'code' => $code, 'name' => $data['name'], 'slug' => $slug,
-                    'status' => $data['status'] ?? 'trial', 'plan' => $data['plan_id'] ?? null,
-                    'trial' => ($data['status'] ?? 'trial') === 'trial' ? gmdate('Y-m-d', time() + 14 * 86400) : null,
-                    'email' => $data['email'] ?? null, 'phone' => $data['phone'] ?? null,
-                    'city' => $data['city'] ?? null, 'state' => $data['state'] ?? null,
-                    'created' => Str::now(),
-                ]
-            );
+        $result = OrganizationProvisioningService::provision([
+            'name' => $data['name'], 'code' => $code, 'email' => $data['email'] ?? null,
+            'phone' => $data['phone'] ?? null, 'city' => $data['city'] ?? null, 'state' => $data['state'] ?? null,
+            'status' => $data['status'] ?? 'trial', 'plan_id' => $data['plan_id'] ?? null,
+            'admin_name' => $data['admin_name'], 'admin_email' => $data['admin_email'],
+            'admin_password_hash' => AuthService::hash((string) $data['admin_password']),
+            'branch_name' => $data['branch_name'] ?? 'Main Branch',
+        ]);
+        // Platform-created admins must change their password at first sign-in; self-service
+        // signups (which choose their own password on the form) do not need this.
+        Database::run('UPDATE users SET must_change_password = 1, created_by = :by WHERE id = :id',
+            ['by' => $ctx->userId, 'id' => $result['user_id']]);
 
-            NumberingService::seedDefaults($orgId);
-            $roleIds = self::seedRoles($orgId);
-            self::seedDefaultData($orgId);
-
-            $branchId = Database::insert(
-                'INSERT INTO branches (organization_id, name, code, city, state, is_active, created_at)
-                 VALUES (:o, :n, :c, :city, :state, 1, :created)',
-                [
-                    'o' => $orgId, 'n' => $data['branch_name'] ?? 'Main Branch', 'c' => 'MAIN',
-                    'city' => $data['city'] ?? null, 'state' => $data['state'] ?? null, 'created' => Str::now(),
-                ]
-            );
-
-            $userId = Database::insert(
-                'INSERT INTO users
-                   (public_id, organization_id, role_id, name, email, password_hash, is_active,
-                    all_branches, must_change_password, created_at, created_by)
-                 VALUES (:pub, :o, :r, :n, :e, :h, 1, 1, 1, :created, :by)',
-                [
-                    'pub' => Str::ulid(), 'o' => $orgId, 'r' => $roleIds['clinic_admin'],
-                    'n' => $data['admin_name'], 'e' => $data['admin_email'],
-                    'h' => AuthService::hash((string) $data['admin_password']),
-                    'created' => Str::now(), 'by' => $ctx->userId,
-                ]
-            );
-            Database::run('INSERT INTO user_branches (user_id, branch_id, created_at) VALUES (:u, :b, :c)',
-                ['u' => $userId, 'b' => $branchId, 'c' => Str::now()]);
-
-            return $orgId;
-        });
-
-        AuditService::log($ctx, 'platform.organization_created', 'organization', $orgId, null,
+        AuditService::log($ctx, 'platform.organization_created', 'organization', $result['organization_id'], null,
             ['name' => $data['name'], 'code' => $code]);
 
-        return Response::json(['id' => $orgId, 'code' => $code, 'name' => $data['name']], 201);
+        return Response::json(['id' => $result['organization_id'], 'code' => $code, 'name' => $data['name']], 201);
     }
 
     public function updateOrganizationStatus(Request $request, Ctx $ctx): Response

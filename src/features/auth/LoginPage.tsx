@@ -22,7 +22,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const { mustChangePassword } = await login(email.trim(), password);
-      navigate(mustChangePassword ? '/account/change-password' : location.state?.from ?? '/', {
+      navigate(mustChangePassword ? '/app/account/change-password' : location.state?.from ?? '/', {
         replace: true,
       });
     } catch (cause) {

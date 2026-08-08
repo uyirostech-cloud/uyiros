@@ -17,6 +17,7 @@ final class RateLimit
 {
     private const EMAIL_MAX  = 10;   // failures per email per window
     private const IP_MAX     = 60;   // failures per source address per window
+    private const SIGNUP_MAX = 5;    // signup attempts per source address per window
     private const WINDOW_MIN = 15;
 
     public static function recordLoginAttempt(string $email, string $ip, bool $succeeded): void
@@ -45,6 +46,31 @@ final class RateLimit
         );
         if ($byIp >= self::IP_MAX) {
             throw HttpException::tooManyRequests('Too many failed attempts from this network. Please try again later.');
+        }
+    }
+
+    /**
+     * Signup abuse is about volume from one source, not protecting a single account, so it
+     * gets its own counter — reusing the login_attempts table with a synthetic marker rather
+     * than a dedicated migration.
+     */
+    public static function recordSignupAttempt(string $ip, bool $succeeded): void
+    {
+        Database::run(
+            'INSERT INTO login_attempts (email, ip, succeeded, created_at) VALUES (:e, :i, :s, :c)',
+            ['e' => 'signup:attempt', 'i' => $ip, 's' => $succeeded ? 1 : 0, 'c' => Str::now()]
+        );
+    }
+
+    public static function assertSignupAllowed(string $ip): void
+    {
+        $since = gmdate('Y-m-d H:i:s', time() - self::WINDOW_MIN * 60);
+        $count = (int) Database::scalar(
+            "SELECT COUNT(*) FROM login_attempts WHERE ip = :i AND created_at >= :s AND email = 'signup:attempt'",
+            ['i' => $ip, 's' => $since]
+        );
+        if ($count >= self::SIGNUP_MAX) {
+            throw HttpException::tooManyRequests('Too many signup attempts from this network. Please try again later.');
         }
     }
 

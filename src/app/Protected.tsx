@@ -17,9 +17,22 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     return <Navigate to="/platform" replace />;
   }
   if (!user.is_platform_admin && location.pathname.startsWith('/platform')) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/app" replace />;
   }
   return <>{children}</>;
+}
+
+/**
+ * The bare domain root. Signed out -> the marketing/landing page. Signed in -> straight into
+ * the right console for that account, so nobody who is already authenticated ever sees the
+ * landing page's "Sign in" / "Start free trial" buttons.
+ */
+export function RootRoute({ landing }: { landing: ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <FullScreenSpinner />;
+  if (user?.is_platform_admin) return <Navigate to="/platform" replace />;
+  if (user) return <Navigate to="/app" replace />;
+  return <>{landing}</>;
 }
 
 export function RequirePermission({ permission, children }: { permission: string; children: ReactNode }) {

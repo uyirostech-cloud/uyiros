@@ -15,6 +15,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PlatformController;
+use App\Http\Controllers\PublicController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
@@ -25,8 +26,13 @@ $r = new Router();
 $r->get('/health', [HealthController::class, 'index'], null, public: true);
 
 $r->post('/auth/login',           [AuthController::class, 'login'],          null, public: true);
+$r->post('/auth/signup',          [AuthController::class, 'signup'],         null, public: true);
 $r->post('/auth/forgot-password', [AuthController::class, 'forgotPassword'], null, public: true);
 $r->post('/auth/reset-password',  [AuthController::class, 'resetPassword'],  null, public: true);
+
+/* marketing / landing pages — no session, no tenant data */
+$r->get('/plans', [PublicController::class, 'plans'], null, public: true);
+$r->get('/stats', [PublicController::class, 'stats'], null, public: true);
 
 /* ------------------------------------------------- authenticated (no permission needed) */
 $r->get('/auth/me',              [AuthController::class, 'me'],             null, authOnly: true);

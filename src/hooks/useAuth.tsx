@@ -1,7 +1,7 @@
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode,
 } from 'react';
-import { authApi } from '@/services/api/auth';
+import { authApi, type SignupPayload } from '@/services/api/auth';
 import { setUnauthenticatedHandler } from '@/services/http';
 import type { AuthUser, BranchSummary } from '@/types/models';
 
@@ -12,6 +12,7 @@ interface AuthContextValue {
   activeBranchId: number | '';
   setActiveBranchId: (id: number | '') => void;
   login: (email: string, password: string) => Promise<{ mustChangePassword: boolean }>;
+  signup: (payload: SignupPayload) => Promise<{ trialEndsAt: string }>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   can: (permission: string) => boolean;
@@ -71,6 +72,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { mustChangePassword: result.must_change_password };
   }, [load]);
 
+  const signup = useCallback(async (payload: SignupPayload) => {
+    const result = await authApi.signup(payload);
+    setUser(result.user);
+    await load();
+    return { trialEndsAt: result.trial_ends_at };
+  }, [load]);
+
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
@@ -91,8 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AuthContextValue>(() => ({
     user, branches, loading, activeBranchId, setActiveBranchId,
-    login, logout, refresh: load, can, canAny,
-  }), [user, branches, loading, activeBranchId, setActiveBranchId, login, logout, load, can, canAny]);
+    login, signup, logout, refresh: load, can, canAny,
+  }), [user, branches, loading, activeBranchId, setActiveBranchId, login, signup, logout, load, can, canAny]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

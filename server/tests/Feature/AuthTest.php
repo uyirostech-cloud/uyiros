@@ -165,6 +165,54 @@ final class AuthTest extends TestCase
                     'a failed login must be audited'
                 );
             },
+
+            'A13 authOnly routes work for both clinic users and platform admins' => function () {
+                // Regression test: authOnly routes (no permission required, just a valid
+                // session) must not be treated as clinic-only. A platform admin has no
+                // organization_id and previously got a blanket 403 from /auth/me, which made
+                // the SPA believe a freshly logged-in platform admin was signed out.
+                $this->login('clinicUser', 'admin@demoklinik.test');
+                Assert::status(200, $this->request('GET', '/api/auth/me', as: 'clinicUser'));
+
+                $this->login('platformUser', 'platform@clinicflow.test');
+                $me = $this->request('GET', '/api/auth/me', as: 'platformUser');
+                Assert::status(200, $me, 'platform admin must be able to call /auth/me');
+                Assert::true($me['body']['data']['user']['is_platform_admin'] === true);
+                Assert::same(null, $me['body']['data']['user']['organization_id']);
+
+                Assert::status(200, $this->request('POST', '/api/auth/logout', as: 'platformUser'));
+                Assert::status(401, $this->request('GET', '/api/auth/me', as: 'platformUser'));
+            },
+
+            'A14 signup creates a trial organization and logs the admin straight in' => function () {
+                $email = 'newsignup+' . bin2hex(random_bytes(4)) . '@example.test';
+                $result = $this->request('POST', '/api/auth/signup', [
+                    'organization_name' => 'Regression Test Clinic',
+                    'admin_name'        => 'Founder Admin',
+                    'admin_email'       => $email,
+                    'admin_password'    => 'SignupPass#2026',
+                    'plan_code'         => 'starter',
+                ]);
+                Assert::status(201, $result);
+                $user = $result['body']['data']['user'];
+                Assert::same('clinic_admin', $user['role']);
+                Assert::contains('user.manage', $user['permissions']);
+                Assert::true(!empty($result['body']['data']['trial_ends_at']));
+
+                $orgId = (int) $this->scalar('SELECT organization_id FROM users WHERE email = :e', ['e' => $email]);
+                Assert::same('trial', (string) $this->scalar('SELECT status FROM organizations WHERE id = :o', ['o' => $orgId]));
+                Assert::same(1, (int) $this->scalar('SELECT COUNT(*) FROM branches WHERE organization_id = :o', ['o' => $orgId]));
+                Assert::same(1, (int) $this->scalar(
+                    "SELECT COUNT(*) FROM subscriptions WHERE organization_id = :o AND status = 'trialing'", ['o' => $orgId]
+                ));
+
+                // Duplicate email is rejected.
+                $dup = $this->request('POST', '/api/auth/signup', [
+                    'organization_name' => 'Another Clinic', 'admin_name' => 'X',
+                    'admin_email' => $email, 'admin_password' => 'SignupPass#2026',
+                ]);
+                Assert::status(422, $dup);
+            },
         ];
     }
 }

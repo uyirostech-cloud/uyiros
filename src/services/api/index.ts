@@ -12,6 +12,21 @@ import type {
   User,
 } from '@/types/models';
 
+export interface PublicPlan {
+  code: string;
+  name: string;
+  description: string | null;
+  price_monthly: string;
+  price_yearly: string;
+  max_branches: number;
+  max_users: number;
+}
+
+export const publicApi = {
+  plans: () => http.get<PublicPlan[]>('/plans'),
+  stats: () => http.get<{ clinics: number; branches: number }>('/stats'),
+};
+
 export interface ListParams {
   page?: number;
   per_page?: number;

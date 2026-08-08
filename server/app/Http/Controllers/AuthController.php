@@ -11,11 +11,86 @@ use App\Core\Str;
 use App\Core\Validator;
 use App\Domain\Services\AuditService;
 use App\Domain\Services\AuthService;
+use App\Domain\Services\OrganizationProvisioningService;
 use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\RateLimit;
 use App\Http\Middleware\ResolveTenant;
 
 final class AuthController
 {
+    /**
+     * Self-service SaaS signup: creates a new organization on a 14-day trial, its default
+     * roles, a first branch, and a Clinic Admin user — then logs that user straight in.
+     * This is the "subscribe" flow the public landing/pricing pages lead to.
+     */
+    public function signup(Request $request): Response
+    {
+        RateLimit::assertSignupAllowed($request->ip);
+        RateLimit::recordSignupAttempt($request->ip, true);
+
+        $data = Validator::make($request->only([
+            'organization_name', 'admin_name', 'admin_email', 'admin_password',
+            'phone', 'city', 'state', 'plan_code',
+        ]), [
+            'organization_name' => 'required|string|minlen:2|maxlen:160',
+            'admin_name'        => 'required|string|minlen:2|maxlen:120',
+            'admin_email'       => 'required|email|maxlen:190',
+            'admin_password'    => 'required|string|maxlen:200',
+            'phone'             => 'nullable|phone|maxlen:30',
+            'city'              => 'nullable|string|maxlen:80',
+            'state'             => 'nullable|string|maxlen:80',
+            'plan_code'         => 'nullable|string|exists:plans,code',
+        ]);
+        AuthService::validatePasswordStrength((string) $data['admin_password']);
+
+        if (Database::scalar('SELECT id FROM users WHERE email = :e', ['e' => $data['admin_email']]) !== null) {
+            throw HttpException::validation(['admin_email' => 'This email address is already registered']);
+        }
+
+        $planId = null;
+        if (!empty($data['plan_code'])) {
+            $planId = Database::scalar('SELECT id FROM plans WHERE code = :c AND is_active = 1',
+                ['c' => $data['plan_code']]);
+        }
+
+        $result = OrganizationProvisioningService::provision([
+            'name'   => $data['organization_name'],
+            'code'   => OrganizationProvisioningService::generateCode((string) $data['organization_name']),
+            'email'  => $data['admin_email'],
+            'phone'  => $data['phone'] ?? null,
+            'city'   => $data['city'] ?? null,
+            'state'  => $data['state'] ?? null,
+            'status' => 'trial',
+            'plan_id' => $planId === null ? null : (int) $planId,
+            'admin_name'          => $data['admin_name'],
+            'admin_email'         => $data['admin_email'],
+            'admin_password_hash' => AuthService::hash((string) $data['admin_password']),
+        ]);
+
+        AuditService::logAnonymous(
+            $result['organization_id'], $result['user_id'], 'organization.self_registered',
+            ['organization_name' => $data['organization_name'], 'plan_code' => $data['plan_code'] ?? null],
+            $request->ip, $request->userAgent
+        );
+
+        $session = AuthService::createSession($result['user_id'], $request);
+        $auth = [
+            'session' => ['id' => $session['session_id'], 'csrf_token' => $session['csrf']],
+            'user'    => $this->userRow($result['user_id']),
+        ];
+        $ctx = ResolveTenant::build($auth, $request, false);
+
+        $response = Response::json([
+            'user'                  => $ctx->toArray(),
+            'csrf_token'            => $session['csrf'],
+            'expires_at'            => $session['expires_at'],
+            'must_change_password'  => false,
+            'trial_ends_at'         => Database::scalar('SELECT trial_ends_at FROM organizations WHERE id = :o',
+                ['o' => $result['organization_id']]),
+        ], 201);
+        return AuthService::withSessionCookies($response, $session['token'], $session['csrf'], $session['expires_at']);
+    }
+
     public function login(Request $request): Response
     {
         $data = Validator::make($request->only(['email', 'password']), [

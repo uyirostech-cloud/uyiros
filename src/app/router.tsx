@@ -1,7 +1,9 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
-import { RequireAuth, RequirePermission } from './Protected';
+import { RequireAuth, RequirePermission, RootRoute } from './Protected';
 
+import LandingPage from '@/features/marketing/LandingPage';
+import SignupPage from '@/features/marketing/SignupPage';
 import LoginPage from '@/features/auth/LoginPage';
 import ForgotPasswordPage from '@/features/auth/ForgotPasswordPage';
 import ResetPasswordPage from '@/features/auth/ResetPasswordPage';
@@ -28,6 +30,8 @@ function guarded(permission: string, node: React.ReactNode) {
 }
 
 export const router = createBrowserRouter([
+  { path: '/', element: <RootRoute landing={<LandingPage />} /> },
+  { path: '/signup', element: <SignupPage /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
@@ -45,7 +49,7 @@ export const router = createBrowserRouter([
   },
 
   {
-    path: '/',
+    path: '/app',
     element: <RequireAuth><AppLayout /></RequireAuth>,
     children: [
       { index: true, element: guarded('dashboard.view', <DashboardPage />) },
@@ -83,7 +87,7 @@ export const router = createBrowserRouter([
       { path: 'administration/settings', element: guarded('settings.view', <SettingsPage />) },
 
       { path: 'account/change-password', element: <ChangePasswordPage /> },
-      { path: 'account', element: <Navigate to="/account/change-password" replace /> },
+      { path: 'account', element: <Navigate to="/app/account/change-password" replace /> },
     ],
   },
 

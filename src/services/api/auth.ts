@@ -8,9 +8,26 @@ export interface LoginResponse {
   must_change_password: boolean;
 }
 
+export interface SignupPayload {
+  organization_name: string;
+  admin_name: string;
+  admin_email: string;
+  admin_password: string;
+  phone?: string;
+  city?: string;
+  state?: string;
+  plan_code?: string;
+}
+
+export interface SignupResponse extends LoginResponse {
+  trial_ends_at: string;
+}
+
 export const authApi = {
   login: (email: string, password: string) =>
     http.post<LoginResponse>('/auth/login', { email, password }),
+
+  signup: (payload: SignupPayload) => http.post<SignupResponse>('/auth/signup', payload),
 
   me: () => http.get<SessionPayload>('/auth/me'),
 

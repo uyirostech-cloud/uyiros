@@ -57,7 +57,7 @@ final class Kernel
 
             $auth = Authenticate::resolve($request);
             CsrfGuard::check($request, (string) $auth['session']['csrf_token']);
-            $ctx = ResolveTenant::build($auth, $request, $route->platform);
+            $ctx = ResolveTenant::build($auth, $request, $route->platform, $route->authOnly);
             RequirePermission::check($ctx, $route->permission);
 
             return $this->invoke($route, $request, $ctx);

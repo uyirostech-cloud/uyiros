@@ -47,7 +47,7 @@ export default function PatientDetailPage() {
       <ErrorState
         title="Patient not found"
         message="It may have been removed, or it belongs to a different clinic."
-        onRetry={() => navigate('/patients')}
+        onRetry={() => navigate('/app/patients')}
       />
     );
   }
@@ -58,7 +58,7 @@ export default function PatientDetailPage() {
     <div>
       <button
         type="button"
-        onClick={() => navigate('/patients')}
+        onClick={() => navigate('/app/patients')}
         className="mb-3 text-sm font-medium text-ink-500 hover:text-ink-800"
       >
         ← Back to patients
