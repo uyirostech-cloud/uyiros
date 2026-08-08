@@ -41,16 +41,23 @@ $plans = PlanSeeder::run();
 echo "    plans         +{$plans}\n";
 
 // Platform super admin — separate from every clinic (organization_id is NULL).
-$platformEmail = 'platform@clinicflow.test';
+// Never reuses the well-known demo password: a random one is generated and printed once,
+// here, so the very first platform account is never a predictable credential.
+$platformEmail = getenv('PLATFORM_ADMIN_EMAIL') ?: 'platform@clinicflow.test';
 if (Database::scalar('SELECT id FROM users WHERE email = :e', ['e' => $platformEmail]) === null) {
+    do {
+        $platformPassword = bin2hex(random_bytes(9));
+    } while (!preg_match('/[A-Za-z]/', $platformPassword) || !preg_match('/\d/', $platformPassword));
+
     Database::insert(
         'INSERT INTO users (public_id, organization_id, role_id, name, email, password_hash,
                             is_platform_admin, is_active, all_branches, must_change_password, created_at)
          VALUES (:pub, NULL, NULL, "Platform Super Admin", :e, :h, 1, 1, 1, 0, :created)',
         ['pub' => Str::ulid(), 'e' => $platformEmail,
-         'h' => AuthService::hash(DemoDataSeeder::DEMO_PASSWORD), 'created' => Str::now()]
+         'h' => AuthService::hash($platformPassword), 'created' => Str::now()]
     );
     echo "    platform admin created ({$platformEmail})\n";
+    echo "    platform admin password (shown once — store it now): {$platformPassword}\n";
 } else {
     echo "    platform admin already exists\n";
 }
