@@ -1,0 +1,84 @@
+name: Deploy
+
+# Manual only — deploying is a decision, not a side effect of pushing code.
+# Also gated by the DEPLOY_ENABLED repository variable so it can be hard-disabled
+# without touching this file (Settings -> Secrets and variables -> Actions -> Variables).
+on:
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    name: Build and deploy to the VPS
+    runs-on: ubuntu-latest
+    if: vars.DEPLOY_ENABLED == 'true'
+    steps:
+      - name: Refuse to run if deploys are disabled
+        if: vars.DEPLOY_ENABLED != 'true'
+        run: |
+          echo "::error::DEPLOY_ENABLED is not 'true' — refusing to deploy."
+          exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend (same-origin API)
+        run: npm run build
+        env:
+          VITE_API_URL: /api
+
+      - name: Generate the production API front controller
+        run: |
+          mkdir -p dist/api
+          cat > dist/api/index.php <<PHP
+          <?php
+          declare(strict_types=1);
+          define('CLINICFLOW_BASE', '${{ secrets.DEPLOY_TARGET_PATH }}/app');
+          require CLINICFLOW_BASE . '/bootstrap.php';
+          (new App\Core\Kernel())->handle()->send();
+          PHP
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Trust the VPS host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${{ secrets.DEPLOY_SSH_PORT }}" "${{ secrets.DEPLOY_SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Sync frontend build + API entry point
+        run: |
+          rsync -az --delete \
+            -e "ssh -p ${{ secrets.DEPLOY_SSH_PORT }}" \
+            dist/ \
+            "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:${{ secrets.DEPLOY_TARGET_PATH }}/public/"
+
+      - name: Sync PHP backend (never touches .env or storage)
+        run: |
+          rsync -az --delete \
+            --exclude='public' --exclude='tests' --exclude='.env' --exclude='storage' \
+            -e "ssh -p ${{ secrets.DEPLOY_SSH_PORT }}" \
+            server/ \
+            "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:${{ secrets.DEPLOY_TARGET_PATH }}/app/"
+
+      - name: Run migrations and permission/plan seeders
+        run: |
+          ssh -p "${{ secrets.DEPLOY_SSH_PORT }}" "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}" \
+            "php '${{ secrets.DEPLOY_TARGET_PATH }}/app/database/migrate.php' && php '${{ secrets.DEPLOY_TARGET_PATH }}/app/database/seed.php'"
+
+      - name: Health check
+        run: |
+          sleep 3
+          response="$(curl -fsS https://uyiros.tech/api/health)"
+          echo "$response"
+          echo "$response" | grep -q '"status":"ok"' || (echo "::error::Health check did not report ok" && exit 1)

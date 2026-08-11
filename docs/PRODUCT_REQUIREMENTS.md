@@ -6,8 +6,8 @@ ClinicFlow is a **multi-tenant SaaS** for **general doctor clinics**. One deploy
 clinics (organizations), each with one or more branches. The product runs the whole daily clinic
 operation from a single connected record set — no disconnected modules.
 
-**Production target:** `https://clinic.drawlead.com` on **Hostinger shared hosting** with
-**Hostinger MySQL**.
+**Production target:** `https://uyiros.tech` on a **Hostinger KVM VPS** (nginx + PHP-FPM +
+MySQL/MariaDB), deployed via a GitHub Actions CI/CD pipeline.
 
 ## 2. The core connected workflow
 
@@ -91,7 +91,9 @@ decides access — the backend does.
 
 ## 6. Non-functional requirements
 
-* **Hosting:** must run on standard Hostinger shared hosting — Apache + PHP-FPM + MySQL.
+* **Hosting:** runs on a Hostinger KVM VPS — nginx + PHP-FPM + MySQL/MariaDB, deployed by CI/CD.
+  The backend has no shared-hosting-specific constraints (root access is available), but stays
+  framework-free and dependency-light regardless, since that was never the reason for the choice.
   No long-running Node process, no VPS, no Docker in production.
 * **Money:** `DECIMAL(14,2)` everywhere. Never float.
 * **Numbering:** business numbers (`PAT-000001`, `INV-000001`, …) generated server-side under a

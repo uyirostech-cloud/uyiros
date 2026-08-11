@@ -2,46 +2,50 @@
 
 ## 1. Why this stack
 
-The production target is **Hostinger shared hosting**. That constrains everything:
+The production target is a **Hostinger KVM VPS** (root access, nginx, PHP-FPM, MySQL/MariaDB —
+no shared-hosting restrictions), reached at **uyiros.tech**. The stack was chosen for a
+shared-hosting-first world and still holds up cleanly on a VPS, just with more headroom:
 
-| Constraint on shared hosting | Consequence |
+| Design choice | Rationale |
 |---|---|
-| No guaranteed persistent Node.js process | Backend **cannot** be Express/Nest/Next SSR. Use PHP, which shared hosting runs per-request. |
-| No root, no systemd, no Docker | No sidecars, no queue workers, no Redis assumption. Cron is available via hPanel only. |
-| Apache + `.htaccess` | Routing via `mod_rewrite` front controller; SPA fallback via `.htaccess`. |
-| PHP 8.x with PDO MySQL available | PDO + prepared statements, `password_hash`, `random_bytes`. |
-| MySQL 8 / MariaDB, no RLS | Tenant isolation must be **application-enforced**, centrally. |
-| Composer may not be runnable on the box | Zero runtime Composer dependencies; own PSR-4 autoloader. |
+| PHP 8 API, no persistent Node process | Runs per-request under PHP-FPM; also happens to need zero long-running process babysitting. |
+| nginx + PHP-FPM | Routing via nginx `location` blocks + a single front controller; SPA fallback via `try_files`. |
+| PHP 8.x with PDO MySQL | PDO + prepared statements, `password_hash`, `random_bytes`. |
+| MySQL 8 / MariaDB, no RLS | Tenant isolation must be **application-enforced**, centrally (see `docs/SECURITY.md`). |
+| Zero runtime Composer dependencies | Own PSR-4 autoloader — deploy is just "copy files", no build step needed server-side. |
 
-**Verified suitability:** the frontend compiles to static assets (Vite → `dist/`), which Apache
-serves directly; the API is plain PHP files behind one front controller. Both live on the same
-domain, so cookies are first-party and no CORS/preflight is needed in production.
+**Verified suitability:** the frontend compiles to static assets (Vite → `dist/`), which nginx
+serves directly; the API is plain PHP files behind one front controller, executed by PHP-FPM.
+Both live on the same domain, so cookies are first-party and no CORS/preflight is needed in
+production.
 
 **Result:**
 
 ```
-React 18 + TypeScript + Vite + Tailwind   →  static build, served by Apache
-PHP 8 REST API (no framework, PSR-4)      →  /api/*  front controller
-MySQL 8 / MariaDB (Hostinger)             →  PDO, prepared statements
+React 18 + TypeScript + Vite + Tailwind   →  static build, served by nginx
+PHP 8 REST API (no framework, PSR-4)      →  /api/*  front controller via PHP-FPM
+MySQL 8 / MariaDB                         →  PDO, prepared statements
 DB-backed sessions + HttpOnly cookie      →  no Supabase, no JWT-in-localStorage
 ```
 
 ## 2. Deployment pipeline
 
 ```
-VS Code → Git → GitHub → (GitHub Actions build + SFTP/SSH deploy) → Hostinger shared hosting
-       → clinic.drawlead.com → Hostinger MySQL
+VS Code → Git → GitHub → GitHub Actions (build + SSH/rsync deploy) → Hostinger KVM VPS
+       → uyiros.tech → MySQL/MariaDB on the same VPS
 ```
 
-See `docs/HOSTINGER_DEPLOYMENT.md`.
+CI/CD is a GitHub Actions workflow (`.github/workflows/deploy.yml`), manually triggered
+(`workflow_dispatch`) so nothing reaches production without explicit approval. See
+`docs/HOSTINGER_DEPLOYMENT.md` for the full setup and secrets required.
 
 ## 3. Runtime topology
 
 ```
-                    https://clinic.drawlead.com
+                         https://uyiros.tech
                                │
                     ┌──────────┴───────────┐
-                    │   Apache (Hostinger) │
+                    │   nginx (VPS)        │
                     └──────────┬───────────┘
              /api/*  ──────────┤            /*  ────────► index.html + /assets/*
                                │                          (React SPA, client routing)
@@ -173,8 +177,8 @@ See `docs/SECURITY.md` for the full rules and the test matrix.
 
 | | Local | Production |
 |---|---|---|
-| Frontend | `npm run dev` (Vite, :5173), proxies `/api` → :8000 | static `dist/` served by Apache |
-| Backend | `php -S localhost:8000 -t server/public` | Apache + PHP-FPM |
+| Frontend | `npm run dev` (Vite, :5173), proxies `/api` → :8000 | static `dist/` served by nginx |
+| Backend | `php -S localhost:8000 -t server/public` | nginx + PHP-FPM |
 | DB | local MySQL/MariaDB (or `docker compose up db`) | Hostinger MySQL |
 | Cookies | `SameSite=Lax`, not Secure (http) | `Secure; HttpOnly; SameSite=Lax` |
 | Env file | `server/.env` from `.env.example` | `server/.env` created on the server, never in Git |

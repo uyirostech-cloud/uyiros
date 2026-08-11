@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
       host: true,
       // In development the SPA and API are on different ports. Proxying /api keeps the
       // browser on one origin, so session cookies stay first-party exactly as they are
-      // in production on clinic.drawlead.com.
+      // in production on uyiros.tech.
       proxy: {
         '/api': {
           target: env.VITE_API_PROXY_TARGET || 'http://localhost:8000',
