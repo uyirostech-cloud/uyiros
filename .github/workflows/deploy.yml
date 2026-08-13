@@ -1,9 +1,14 @@
 name: Deploy
 
-# Manual only — deploying is a decision, not a side effect of pushing code.
-# Also gated by the DEPLOY_ENABLED repository variable so it can be hard-disabled
-# without touching this file (Settings -> Secrets and variables -> Actions -> Variables).
+# Auto-deploys on every push to main, by explicit choice — a push to main IS the
+# approval to go live. Still gated by the DEPLOY_ENABLED repository variable so it
+# can be hard-disabled without touching this file or reverting any commit
+# (Settings -> Secrets and variables -> Actions -> Variables). workflow_dispatch is
+# kept too, so a deploy can still be re-run manually (e.g. to retry after a
+# transient failure) without needing an empty commit.
 on:
+  push:
+    branches: [main]
   workflow_dispatch: {}
 
 jobs:
