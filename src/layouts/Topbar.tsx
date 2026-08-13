@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { initials, titleCase } from '@/utils/format';
 
-export function Topbar({ onOpenMobile }: { onOpenMobile: () => void }) {
+export function Topbar() {
   const { user, branches, activeBranchId, setActiveBranchId, logout } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -15,17 +15,6 @@ export function Topbar({ onOpenMobile }: { onOpenMobile: () => void }) {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-ink-200 bg-white px-4">
-      <button
-        type="button"
-        onClick={onOpenMobile}
-        aria-label="Open menu"
-        className="rounded-lg p-2 text-ink-600 hover:bg-ink-100 md:hidden"
-      >
-        <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="1.8">
-          <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
-        </svg>
-      </button>
-
       <div className="flex items-center gap-2 font-semibold text-ink-900">
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-xs text-white">CF</span>
         <span className="hidden sm:inline">{user?.organization_name ?? 'ClinicFlow'}</span>

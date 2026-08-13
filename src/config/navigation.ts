@@ -77,6 +77,29 @@ export const navigation: NavSection[] = [
   },
 ];
 
+export type MobileIconKey =
+  | 'dashboard' | 'patients' | 'appointments' | 'queue' | 'leads' | 'invoices' | 'tasks' | 'consultations';
+
+export interface MobileNavItem extends NavItem {
+  icon: MobileIconKey;
+}
+
+/**
+ * Candidate tabs for the mobile bottom bar, in priority order. The bottom bar shows the
+ * first 5 the signed-in user has permission for; "More" (always last) opens the full
+ * Sidebar menu for everything else.
+ */
+export const mobileTabCandidates: MobileNavItem[] = [
+  { label: 'Dashboard', path: '/app', permission: 'dashboard.view', icon: 'dashboard' },
+  { label: 'Patients', path: '/app/patients', permission: 'patient.view', icon: 'patients' },
+  { label: 'Appointments', path: '/app/appointments', permission: 'appointment.view', icon: 'appointments' },
+  { label: 'Queue', path: '/app/queue', permission: 'queue.view', icon: 'queue' },
+  { label: 'Leads', path: '/app/leads', permission: 'lead.view', icon: 'leads' },
+  { label: 'Invoices', path: '/app/invoices', permission: 'invoice.view', icon: 'invoices' },
+  { label: 'Tasks', path: '/app/tasks', permission: 'task.view', icon: 'tasks' },
+  { label: 'Consultations', path: '/app/consultations', permission: 'consultation.view', icon: 'consultations' },
+];
+
 export const platformNavigation: NavItem[] = [
   { label: 'Overview', path: '/platform' },
   { label: 'Organizations', path: '/platform/organizations' },

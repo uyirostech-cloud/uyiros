@@ -55,7 +55,22 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
             className="absolute inset-0 bg-ink-900/40"
             onClick={onCloseMobile}
           />
-          <aside className="absolute inset-y-0 left-0 w-64 bg-white shadow-overlay">{content}</aside>
+          <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-white shadow-overlay">
+            <div className="flex h-14 shrink-0 items-center justify-between border-b border-ink-200 px-4">
+              <span className="text-sm font-semibold text-ink-900">Menu</span>
+              <button
+                type="button"
+                aria-label="Close menu"
+                onClick={onCloseMobile}
+                className="rounded-lg p-1.5 text-ink-500 hover:bg-ink-100"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+            <div className="min-h-0 flex-1">{content}</div>
+          </aside>
         </div>
       )}
     </>
