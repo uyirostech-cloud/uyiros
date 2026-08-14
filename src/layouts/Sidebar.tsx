@@ -57,7 +57,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
             className="absolute inset-0 bg-ink-900/40"
             onClick={onCloseMobile}
           />
-          <div className="absolute inset-x-4 top-16 flex max-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl bg-white shadow-overlay">
+          <div className="absolute inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] flex max-h-[70vh] flex-col overflow-hidden rounded-t-2xl bg-white shadow-overlay">
             <div className="flex h-12 shrink-0 items-center justify-between border-b border-ink-100 px-4">
               <span className="text-sm font-semibold text-ink-900">Menu</span>
               <button
