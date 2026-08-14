@@ -9,7 +9,7 @@ export function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
 
   const tabs = mobileTabCandidates
     .filter((item) => canAny(item.permissionAny ?? (item.permission ? [item.permission] : [])))
-    .slice(0, 5);
+    .slice(0, 4);
 
   return (
     <nav
