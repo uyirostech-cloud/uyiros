@@ -95,7 +95,7 @@ export interface MobileNavItem extends NavItem {
 export const mobileTabCandidates: MobileNavItem[] = [
   { label: 'Dashboard', path: '/app', permission: 'dashboard.view', icon: 'dashboard' },
   { label: 'Inventory', path: '/app/inventory', permission: 'inventory.view', icon: 'inventory' },
-  { label: 'Finance Dashboard', path: '/app/finance', permission: 'finance.view', icon: 'finance' },
+  { label: 'Finance', path: '/app/finance', permission: 'finance.view', icon: 'finance' },
   { label: 'Doctors', path: '/app/administration/doctors', permission: 'doctor.view', icon: 'doctors' },
   { label: 'Patients', path: '/app/patients', permission: 'patient.view', icon: 'patients' },
   { label: 'Appointments', path: '/app/appointments', permission: 'appointment.view', icon: 'appointments' },

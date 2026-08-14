@@ -24,22 +24,22 @@ export function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
             end={item.path === '/app'}
             className={({ isActive }) =>
               cn(
-                'flex flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium',
+                'flex flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden px-1 text-[11px] font-medium',
                 isActive ? 'bg-brand-600 text-white' : 'text-ink-500',
               )
             }
           >
-            <MobileNavIcon icon={item.icon} className="h-5 w-5" />
-            {item.label}
+            <MobileNavIcon icon={item.icon} className="h-5 w-5 shrink-0" />
+            <span className="w-full truncate text-center leading-none">{item.label}</span>
           </NavLink>
         ))}
         <button
           type="button"
           onClick={onOpenMore}
-          className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-ink-500"
+          className="flex flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden px-1 text-[11px] font-medium text-ink-500"
         >
-          <MoreIcon className="h-5 w-5" />
-          More
+          <MoreIcon className="h-5 w-5 shrink-0" />
+          <span className="w-full truncate text-center leading-none">More</span>
         </button>
       </div>
     </nav>
