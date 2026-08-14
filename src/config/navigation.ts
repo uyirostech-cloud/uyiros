@@ -89,11 +89,14 @@ export interface MobileNavItem extends NavItem {
 
 /**
  * Candidate tabs for the mobile bottom bar, in priority order. The bottom bar shows the
- * first 5 the signed-in user has permission for; "More" (always last) opens the full
+ * first 4 the signed-in user has permission for; "More" (always last) opens the full
  * Sidebar menu for everything else.
  */
 export const mobileTabCandidates: MobileNavItem[] = [
   { label: 'Dashboard', path: '/app', permission: 'dashboard.view', icon: 'dashboard' },
+  { label: 'Inventory', path: '/app/inventory', permission: 'inventory.view', icon: 'inventory' },
+  { label: 'Finance Dashboard', path: '/app/finance', permission: 'finance.view', icon: 'finance' },
+  { label: 'Doctors', path: '/app/administration/doctors', permission: 'doctor.view', icon: 'doctors' },
   { label: 'Patients', path: '/app/patients', permission: 'patient.view', icon: 'patients' },
   { label: 'Appointments', path: '/app/appointments', permission: 'appointment.view', icon: 'appointments' },
   { label: 'Queue', path: '/app/queue', permission: 'queue.view', icon: 'queue' },
