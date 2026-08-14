@@ -78,26 +78,12 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
                   to={item.path}
                   end={item.path === '/'}
                   onClick={onCloseMobile}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex flex-col items-center gap-1.5 rounded-xl px-1 py-2 text-center',
-                      isActive ? 'text-brand-700' : 'text-ink-600',
-                    )
-                  }
+                  className="flex flex-col items-center gap-1.5 rounded-xl px-1 py-2 text-center text-ink-600"
                 >
-                  {({ isActive }) => (
-                    <>
-                      <span
-                        className={cn(
-                          'flex h-11 w-11 items-center justify-center rounded-xl',
-                          isActive ? 'bg-brand-50 text-brand-700' : 'bg-ink-100 text-ink-600',
-                        )}
-                      >
-                        <MobileNavIcon icon={item.icon ?? 'settings'} className="h-5 w-5" />
-                      </span>
-                      <span className="text-[11px] font-medium leading-tight">{item.label}</span>
-                    </>
-                  )}
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-ink-100 text-ink-600">
+                    <MobileNavIcon icon={item.icon ?? 'settings'} className="h-5 w-5" />
+                  </span>
+                  <span className="text-[11px] font-medium leading-tight">{item.label}</span>
                 </NavLink>
               ))}
             </div>
