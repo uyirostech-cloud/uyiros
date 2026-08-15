@@ -8,11 +8,11 @@ export function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-ink-50">
+    <div className="flex h-screen overflow-hidden bg-ink-50">
       <Sidebar mobileOpen={mobileMenuOpen} onCloseMobile={() => setMobileMenuOpen(false)} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar />
-        <main className="flex-1 p-4 pb-20 sm:p-6 md:pb-6">
+        <main className="flex-1 overflow-y-auto p-4 pb-20 sm:p-6 md:pb-6">
           <Outlet />
         </main>
       </div>
