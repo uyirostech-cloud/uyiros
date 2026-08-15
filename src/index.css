@@ -38,3 +38,26 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Themed scrollbars — a slim ink-toned thumb instead of the bulky OS default. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: theme('colors.ink.300') transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: theme('colors.ink.300');
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: theme('colors.ink.400');
+}
